@@ -29,18 +29,18 @@ create table products (
 -- Insert data into the products table
 --
 insert into products (product_name, department_name, product_sales, price, stock_quantity)
-    values ("LG HD Smart 40-Inch OLED TV",                     "Electronics", 0, 599.99,  5),
-           ("Sceptre 24 inches 720p LED TV",                   "Electronics", 0, 79.00,   1),
-           ("Sony 55-Inch 4K Ultra HD Smart BRAVIA OLED TV",   "Electronics", 0, 3449.99, 3),
-           ("Samsung QN65Q6FN FLAT 65” QLED 4K",               "Electronics", 0, 4599.99, 4),
-           ("Lenovo Chromebook Convertible Laptop, 11.6-Inch", "Electronics", 0, 119.00,  1),
-           ("Dell 2018 Inspiron 13 7000 2-in-1 13.3 Laptop",   "Electronics", 0, 595.98,  6),
-           ("Apple MacBook Air 13-Inch, 1.8GHz",               "Electronics", 0, 799.99,  1),
-           ("CYBERPOWER PC Gamer Xtreme VR GXiVd",             "Electronics", 0, 879.00,  3),
-           ("Apple iPhone 6 Plus",                             "Electronics", 0, 209.99,  5),
-           ("Jitterbug Flip Phone - Red",                      "Electronics", 0, 19.99,   7),
-           ("Apple iPhone 8 (64GB) - Silver",                  "Electronics", 0, 599.99,  5),
-           ("Samsung Galaxy Note 9 6.4” Screen",               "Electronics", 0, 749.99,  4);
+    values ("LG HD Smart 40-Inch OLED TV",                     "Electronics",      8999.85,  599.99,  10),
+           ("Sceptre 24 inches 720p LED TV",                   "Electronics",      3999.50,  79.99,    1),
+           ("Sony 55-Inch 4K Ultra HD Smart BRAVIA OLED TV",   "Electronics",      51749.85, 3449.99, 20),
+           ("Samsung QN65Q6FN FLAT 65” QLED 4K",               "Electronics",      55199.88, 4599.99,  4),
+           ("CLARKS Men's Desert Trek Moccasin Shoes",         "Clothing",         16992.40, 147.76,  50),
+           ("ECCO Men's Track 25 Premium Low Oxford Shoes",    "Clothing",         28738.50, 249.95,  40),
+           ("Crocs Women's Classic Clog Shoes",                "Clothing",         18118.25, 157.55,  15),
+           ("UGG Women's Shaye Rain Boot",                     "Clothing",         19767.10, 91.94,    3),
+           ("Makita XT337T LXT Cordless 3-Pc. Combo Kit ",     "Home Improvement", 58176.20, 505.88,  15),
+           ("Bosch Fixed Base Router 2.5 Horsepower",          "Home Improvement", 42997.85, 199.99,  10),
+           ("Bosch Power Tools Tablesaw 4100-10",              "Home Improvement", 28346.85, 89.99,    8),
+           ("BLACK+DECKER LDX120C 20V MAX Lithium Ion Drill",  "Home Improvement", 86248.85, 749.99,   4);
  
 --
 -- Create departments table
@@ -55,6 +55,6 @@ create table departments (
 -- Insert data into the departments table
 --
 insert into departments (department_name, over_head_costs)
-    values ("Electronics",  30000),
-           ("Clothing",     20000),
-           ("Toys & Games", 10000)
+    values ("Electronics",      30000),
+           ("Clothing",         20000),
+           ("Home Improvement", 10000)

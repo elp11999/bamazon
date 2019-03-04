@@ -90,9 +90,9 @@ var displayItemsForSale = () => {
         function(err, res) {
             var itemDetail = "";
             if (err) throw err;
-            console.log("\n---"); 
-            console.log("--- Below are the Bamazon items for sale");
-            console.log("---"); 
+
+            // Display all products for sale
+            console.log("\r");
             console.table(res); 
             console.log("\r");
 
@@ -169,3 +169,17 @@ console.log("Welcome to Bamazon!!!");
 
 // Display all items for sale
 displayItemsForSale();
+
+
+/*
+
+select departments.department_id,
+       departments.department_name, 
+       departments.over_head_costs, 
+       sum(products.product_sales) as product_sales,
+       (sum(products.product_sales) - departments.over_head_costs) as total_profit
+    from departments
+    inner join products
+       on departments.department_name = products.department_name;
+
+*/

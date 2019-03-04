@@ -117,7 +117,6 @@ var addToInventory = (item_ID, newQuantity) => {
 
 // Function to add a new product
 var addNewProduct = (itemInfo) => {
-    console.log(itemInfo);
 
     // Create new product
     var query = connection.query(
@@ -277,21 +276,4 @@ connection.connect(function(err) {
     // Prompt Manager with questions
     promptManager();
 });
-
-/*
-select departments.department_id,
-       departments.department_name, 
-       departments.over_head_costs, 
-       products.product_sales
-    from departments
-    inner join
-    products
-       on departments.department_name = products.department_name;
-
-select distinct top5000.artist
-    from top5000
-    inner join top3000
-        on top5000.year = top3000.year;
-
-*/
 
