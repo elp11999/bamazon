@@ -279,14 +279,14 @@ connection.connect(function(err) {
 });
 
 /*
-select department_name from products;
-
-use bamazon;
-select department_name
-from departments
-inner join
-products
-on departments.department_name = products.department_name;
+select departments.department_id,
+       departments.department_name, 
+       departments.over_head_costs, 
+       products.product_sales
+    from departments
+    inner join
+    products
+       on departments.department_name = products.department_name;
 
 select distinct top5000.artist
     from top5000
