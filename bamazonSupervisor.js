@@ -8,6 +8,9 @@
 //                          * Create a new department
 //
 
+// Load DotEnv library
+require("dotenv").config();
+
 // Load Console table library
 var cTable = require('console.table');
 
@@ -20,16 +23,29 @@ var mySql = require("mysql");
 // Create MySql connection object
 var connection = mySql.createConnection(
     {
-        host     : 'localhost',
-        user     : 'root',
-        password : 'elp1elp1',
+        host     : process.env.MYSQL_HOSTNAME,
+        user     : process.env.MYSQL_USER,
+        password : process.env.MYSQL_PASSWORD,
         database : 'bamazon'
     }
 );
 
 // Function to view sales by department
 var viewSalesByDepartement = () => {
-    var query = connection.query("select departments.department_id, departments.department_name, departments.over_head_costs, sum(products.product_sales) as product_sales, (sum(products.product_sales) - departments.over_head_costs) as total_profit from departments left join products on departments.department_name = products.department_name group by departments.department_id;",
+
+    // Create SQL query to get the sales information
+    var sqlQuery = "select departments.department_id,   \
+                           departments.department_name, \
+                           departments.over_head_costs, \
+                        sum(products.product_sales) as product_sales, \
+                        (sum(products.product_sales) - departments.over_head_costs) as total_profit \
+                    from departments       \
+                        left join products \
+                            on departments.department_name = products.department_name \
+                        group by departments.department_id;"
+
+    // Get sales information for all departments
+    var query = connection.query(sqlQuery,
         function(err, res) {
             var itemDetail = "";
             if (err) throw err;

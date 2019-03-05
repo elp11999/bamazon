@@ -7,99 +7,78 @@
 //                    Updates inventory as purchases are made.
 //
 
-// Load Console table library
-var cTable = require('console.table');
-
 // Load inquirer npm package
 var inquirer = require("inquirer");
 
-// Load MySql library
-var mySql = require("mysql");
+// Load sprintf-js library
+var sprintf = require('sprintf-js').sprintf,
+    vsprintf = require('sprintf-js').vsprintf
 
-// Create MySql connection object
-var connection = mySql.createConnection(
-    {
-        host     : 'localhost',
-        user     : 'root',
-        password : 'elp1elp1',
-        database : 'bamazon'
-    }
-);
+// Load Bamazon SQL library
+var bamazonSQL = require("./bamazonSQL.js");
 
-// Update items inventory
-function updateItem(item_ID, totalCost, totalSales, newQuantity) {
-    var query = connection.query(
-      "UPDATE products SET ? WHERE ?",
-      [
-        {
-            product_sales: totalSales,
-            stock_quantity: newQuantity
-        },
-        {
-            item_id: item_ID
-        }
-      ],
-      function(err, res) {
-        if (err) throw err;
-
-        // Purchase was successful
-        console.log("\nCongratulations!!! Your purchase was successful.");
-        console.log("The total price is $" + totalCost);
-        console.log("We hope you will be very happy with your new product.");
-        console.log("Thank you for shopping Bamazon.\n");
-           
-        // Prompt user to continue shopping
-        promptUserToContinueShopping();
-      }
-    );
-};
+// Array to hold items available to purchase
+var itemChoices = [];
 
 // Function to purchase item
-var purchaseItem = (item_Id, quantity) => {
-    var query = connection.query(
-      "select * from products WHERE ?",
-      [
-        {
-            item_id: item_Id
-        }
-      ],
-      function(err, res) {
-        if (err) throw err;
-        //console.log(res);
-
-        // Check if current inventory will fill the user's request
-        if (quantity > parseInt(res[0].stock_quantity)) {
-            console.log("\nWe are sorry, their are not enough items at this time to fill your request.\n");
-            
-            // Prompt user to continue shopping
-            promptUserToContinueShopping();
-        } else {
-            // Update item with new quantity and product sales
-            updateItem(item_Id,
-                      (parseFloat(res[0].price) * quantity),
-                      (parseFloat(res[0].product_sales + (parseFloat(res[0].price) * quantity))), 
-                      (parseInt(res[0].stock_quantity - quantity)));
-        }
-      }
-    );
+var purchaseItem = (item_ID, totalCost, totalSales, newQuantity) => {
+  bamazonSQL.updateItem(item_ID, totalCost, totalSales, newQuantity, displayPurchaseResults);
 }
 
-// Function display all item in the store for sale
-var displayItemsForSale = () => {
-    var query = connection.query("select item_id, product_name, price from products",
-        function(err, res) {
-            var itemDetail = "";
-            if (err) throw err;
+// Function to display purchase results
+function displayPurchaseResults(totalCost) {
 
-            // Display all products for sale
-            console.log("\r");
-            console.table(res); 
-            console.log("\r");
+    // Purchase was successful
+    console.log("\nCongratulations!!! Your purchase was successful.");
+    console.log("The total price is $" + totalCost);
+    console.log("We hope you will be very happy with your new product.");
+    console.log("Thank you for shopping Bamazon.\n");
+        
+    // Prompt user to continue shopping
+    promptUserToContinueShopping();
+};
 
-            // Prompt user to purchase items
-            promptUserToPurchaseItems();
-        }
-    );
+// Function to get item quantity
+var getItemQuantity = (item_Id, quantityNeeded) => {
+  bamazonSQL.getItemQuantity(item_Id, quantityNeeded, checkItemQuantity);
+}
+
+// Function to check item quantity
+var checkItemQuantity = (item_Id, quantityNeeded, res) => {
+
+  // Check if current inventory will fill the user's request
+  if (quantityNeeded > parseInt(res[0].stock_quantity)) {
+      console.log("\nWe are sorry, their are not enough items at this time to fill your request.\n");
+      
+      // Prompt user to continue shopping
+      promptUserToContinueShopping();
+  } else {
+      // Purchase item
+      purchaseItem(item_Id,
+         (parseFloat(res[0].price) * quantityNeeded),
+         (parseFloat(res[0].product_sales + (parseFloat(res[0].price) * quantityNeeded))), 
+         (parseInt(res[0].stock_quantity - quantityNeeded)));
+  }
+}
+
+// Function to get all items for sale
+var getItemsForSale = () => {
+  bamazonSQL.getItemsForSale(saveItemsForSale);
+}
+
+// Function save all items for sale
+var saveItemsForSale = (res) => {
+
+    // Create list of all products for sale
+    console.log("\r");
+    itemChoices = [];
+    for (var i = 0; i < res.length; i++) {
+      if (parseInt(res[i].stock_quantity) > 0) 
+        itemChoices.push(sprintf('%-3d %-50s %.2f', res[i].item_id, res[i].product_name, res[i].price));
+    }
+
+    // Prompt user to purchase items
+    promptUserToPurchaseItems(itemChoices);
 };
 
 // Function to prompt user to continue shopping
@@ -108,41 +87,36 @@ var promptUserToContinueShopping = () => {
         {
             type: 'confirm',
             name: 'confirm',
-            message: "Would you like to contine shopping?"
+            message: "Would you like to continue shopping?"
         }
     ]).then((answers) => {
-        //console.log(answers);
 
         // Check if user wants to continue shopping
         if (answers.confirm) {
             console.clear();
-            displayItemsForSale();
+            getItemsForSale();
         }
         else {
             console.log("\nGoodbye!!! Please come back and shop with us again soon.");
-            connection.end();
+            
+            // Disconnect from MySql
+            bamazonSQL.disconnect(); 
         }
-
     });
 };
 
 // Function to prompt user to purchase an item
-var promptUserToPurchaseItems = () => {
+var promptUserToPurchaseItems = (itemChoices) => {
+
+    // Display welcome message
+    console.log("Welcome to Bamazon!!!\n");
+
     inquirer.prompt([
         {
-            type: 'input',
-            name: 'item_ID',
+            type: 'list',
+            name: 'item',
             message: "What item id would you like to purchase?",
-            validate: function(value) {
-              inputValue = parseFloat(value);
-              var valid = !isNaN(inputValue);
-              if (!valid)
-                return 'Please enter a number.';
-              if (inputValue <= 0) 
-                return 'Please enter a number greater than 0.';
-              return true;
-            },
-            filter: Number
+            choices: itemChoices
         },
         {
             type: 'input',
@@ -160,26 +134,14 @@ var promptUserToPurchaseItems = () => {
             filter: Number
         }
     ]).then((answers) => {
-        purchaseItem(answers.item_ID, parseInt(answers.quantity));
+
+        // Get the item_id
+        var item_id = answers.item.substring(0, answers.item.indexOf(" "));
+
+        // Get item quantity
+        getItemQuantity(item_id, parseInt(answers.quantity));
     });
 };
 
-// Start application
-console.log("Welcome to Bamazon!!!");
-
-// Display all items for sale
-displayItemsForSale();
-
-
-/*
-
-select departments.department_id,
-       departments.department_name, 
-       departments.over_head_costs, 
-       sum(products.product_sales) as product_sales,
-       (sum(products.product_sales) - departments.over_head_costs) as total_profit
-    from departments
-    inner join products
-       on departments.department_name = products.department_name;
-
-*/
+// Connect to MySql database
+bamazonSQL.connect(getItemsForSale); 

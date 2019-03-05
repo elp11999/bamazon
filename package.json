@@ -18,8 +18,10 @@
   "homepage": "https://github.com/elp11999/bamazon#readme",
   "dependencies": {
     "console.table": "^0.10.0",
+    "dotenv": "^6.2.0",
     "inquire": "^0.4.8",
     "inquirer": "^6.2.2",
-    "mysql": "^2.16.0"
+    "mysql": "^2.16.0",
+    "sprintf-js": "^1.1.2"
   }
 }

@@ -10,11 +10,18 @@
 //                       * Add New Product to inventory
 //
 
+// Load DotEnv library
+require("dotenv").config();
+
 // Load Console table library
 var cTable = require('console.table');
 
 // Load inquirer npm package
 var inquirer = require("inquirer");
+
+// Load sprintf-js library
+var sprintf = require('sprintf-js').sprintf,
+    vsprintf = require('sprintf-js').vsprintf
 
 // Load MySql library
 var mySql = require("mysql");
@@ -22,9 +29,9 @@ var mySql = require("mysql");
 // Create MySql connection object
 var connection = mySql.createConnection(
     {
-        host     : 'localhost',
-        user     : 'root',
-        password : 'elp1elp1',
+        host     : process.env.MYSQL_HOSTNAME,
+        user     : process.env.MYSQL_USER,
+        password : process.env.MYSQL_PASSWORD,
         database : 'bamazon'
     }
 );
@@ -42,6 +49,24 @@ var viewAllProducts = () => {
 
             // Prompt manager for more work
             promptManager();
+        }
+    );
+};
+
+// Function to view all products for inventory
+var viewAllProductsForInventory = () => {
+    var query = connection.query("select item_id, product_name, stock_quantity from products",
+        function(err, res) {
+            var itemDetail = "";
+            if (err) throw err;
+
+            // Create choices to update inventory
+            choices = [];
+            for (var i = 0; i < res.length; i++)
+              choices.push(sprintf('%-3d %-50s Quantity: %d', res[i].item_id, res[i].product_name, res[i].stock_quantity));
+
+            // Prompt manager for new inventory count            
+            promptForNewInventoryCount(choices);
         }
     );
 };
@@ -143,22 +168,13 @@ var addNewProduct = (itemInfo) => {
 };
 
 // Function to prompt manager for new inventory update
-var promptForNewInventoryCount = () => {
+var promptForNewInventoryCount = (choices) => {
     inquirer.prompt([
         {
-            type: 'input',
-            name: 'item_ID',
+            type: 'list',
+            name: 'item',
             message: "What item id would you like to update?",
-            validate: function(value) {
-              inputValue = parseFloat(value);
-              var valid = !isNaN(inputValue);
-              if (!valid)
-                return 'Please enter a number.';
-              if (inputValue <= 0) 
-                return 'Please enter a number greater than 0.';
-              return true;
-            },
-            filter: Number
+            choices : choices
         },
         {
             type: 'input',
@@ -178,8 +194,11 @@ var promptForNewInventoryCount = () => {
     ]).then((answers) => {
         //console.log(answers);
 
+        // Get the item_id
+        var item_id = answers.item.substring(0, answers.item.indexOf(" "));
+
         // Add to inventory count
-        addToInventory(answers.item_ID, answers.newCount);
+        addToInventory(item_id, answers.newCount);
     });
 };
 
@@ -249,7 +268,7 @@ function promptManager() {
                 viewLowInventory();
                 break;
             case "Add to item inventory.":
-                promptForNewInventoryCount();
+                viewAllProductsForInventory();
                 break;
             case "Add new product.":
                 promptForNewProduct();
