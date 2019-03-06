@@ -23,6 +23,9 @@ var inquirer = require("inquirer");
 var sprintf = require('sprintf-js').sprintf,
     vsprintf = require('sprintf-js').vsprintf
 
+// Load Bamazon SQL library
+var bamazonSQL = require("./bamazonSQL.js");
+
 // Load MySql library
 var mySql = require("mysql");
 
@@ -35,6 +38,81 @@ var connection = mySql.createConnection(
         database : 'bamazon'
     }
 );
+
+// Current product inventory list
+var currentInventory = [];
+
+// Function to get all items for sale
+var getItemsForSale = () => {
+    bamazonSQL.getItemsForSale(displayItemsForSale);
+}
+
+// Display all items for sale
+var displayItemsForSale = (res) => {
+            
+    // Display product list
+    console.table(res); 
+
+    // Prompt manager for more work
+    promptManager();
+};
+
+// Function to get all items which have an inventory less than 5
+var getLowInventoryItems = () => {
+    bamazonSQL.getLowInventoryItems(displayLowInventoryItems);
+}
+
+// Display low inventory items
+var displayLowInventoryItems = (res) => {
+        
+    // Log low inventory results
+    if (res.length > 0 )            
+        console.table(res); 
+    else
+        console.log("No items have an inventory level less than 5.");
+    console.log("\r");
+
+    // Prompt manager for more work
+    promptManager();
+};
+
+// Function to get all items which have an inventory less than 5
+var getInventorylist = () => {
+    bamazonSQL.getInventoryList(buildInventoryList);
+}
+
+// Function to build inventory list
+var buildInventoryList = (res) => {
+
+    // Set current product inventory list
+    currentInventory = res;
+
+    // Create choices to update inventory
+    choices = [];
+    for (var i = 0; i < res.length; i++)
+      choices.push(sprintf('%-3d %-50s Quantity: %d', res[i].item_id, res[i].product_name, res[i].stock_quantity));
+
+    // Prompt manager for new inventory count            
+    promptForNewInventoryCount(choices);
+};
+
+// Function to update a products inventory
+var updateProductInventory = (item_ID, newQuantity) => {
+    bamazonSQL.updateProductInventory(item_ID, newQuantity, displayProductInventoryResult);
+}
+
+// Function to display updated inventory result
+var displayProductInventoryResult = (res) => {
+    
+    // Update successful
+    //console.log("\nItem id: " + item_ID + " inventory has been successfully updated to " + newQuantity + ".\n");
+    console.log("\nInventory has been successfully updated.\n");
+
+    // Prompt manager for more work
+    promptManager();
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 // Function to view all products
 var viewAllProducts = () => {
@@ -197,8 +275,8 @@ var promptForNewInventoryCount = (choices) => {
         // Get the item_id
         var item_id = answers.item.substring(0, answers.item.indexOf(" "));
 
-        // Add to inventory count
-        addToInventory(item_id, answers.newCount);
+        // Update inventory count
+        updateProductInventory(item_id, answers.newCount);
     });
 };
 
@@ -262,13 +340,13 @@ function promptManager() {
     }]).then((answers) => {
         switch (answers.action) {
             case "View products for sale.":
-                viewAllProducts();
+                getItemsForSale();
                 break;
             case "View low inventory items.":
                 viewLowInventory();
                 break;
             case "Add to item inventory.":
-                viewAllProductsForInventory();
+                getInventorylist();
                 break;
             case "Add new product.":
                 promptForNewProduct();
@@ -276,7 +354,9 @@ function promptManager() {
             case "EXIT":            
                 console.log("\r");
                 console.log("Goodbye... Come back soon!!!");
-                connection.end();
+
+                // Disconnect from MySql
+                bamazonSQL.disconnect(); 
                 return;
             default:
                 promptManager();
@@ -288,6 +368,10 @@ function promptManager() {
 console.log("Welcome to Bamazon!!!\n");
 
 // Connect to MySql database
+bamazonSQL.connect(promptManager); 
+
+/*
+// Connect to MySql database
 connection.connect(function(err) {
     // Check for error
     if (err) throw(err);
@@ -295,4 +379,5 @@ connection.connect(function(err) {
     // Prompt Manager with questions
     promptManager();
 });
+*/
 

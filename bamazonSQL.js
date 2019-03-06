@@ -105,9 +105,82 @@ var bamazonSQL = {
             cb(totalCost);
           }
         );
+    },
+    
+    // Function to get the item quantity
+    getLowInventoryItems : function(cb) {
+        var query = connection.query(          
+          "select * from products where stock_quantity < 5",
+          function(err, res) {
+
+            // Check for error
+            if (err) {
+                 throw(err);
+            }
+
+            // Run the callback function
+            cb(res);
+          }
+        );
+    },
+    
+    // Function to get the current inventory list
+    getInventoryList : function(cb) {
+        var query = connection.query(          
+          "select item_id, product_name, stock_quantity from products",
+          function(err, res) {
+
+            // Check for error
+            if (err) {
+                 throw(err);
+            }
+
+            // Run the callback function
+            cb(res);
+          }
+        );
+    },
+    
+    // Function to update a products inventory
+    updateProductInventory : function(item_ID, newQuantity, cb) {
+
+        var sqlQuery = "UPDATE products as p,                      \
+        (                                                          \
+            SELECT item_id, stock_quantity as sq                   \
+            FROM products                                          \
+            WHERE item_id = ?                                      \
+        ) as t                                                     \
+        SET stock_quantity = sq + ? WHERE t.item_id = p.item_id;"
+
+        var query = connection.query(sqlQuery,
+          [
+            item_ID, 
+            newQuantity
+          ],
+          function(err, res) {
+
+            // Check for error
+            if (err) {
+                 throw(err);
+            }
+
+            // Run the callback function
+            cb(res);
+          }
+        );
     }
 
 };
 
 // Export Bamazon SQL Object
 module.exports = bamazonSQL;
+
+/*
+UPDATE products as t, 
+(
+    SELECT item_id, stock_quantity as sq
+    FROM products 
+    WHERE item_id = '1'
+) as temp
+SET stock_quantity = sq + '5' WHERE temp.item_id = t.item_id;
+*/
