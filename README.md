@@ -25,11 +25,11 @@ Amazon-like storefront NodeJS application using MySQL
 * Example of running the bamazonCustomer application:
   * Command line: node bamazonCustomer.js
      * Initial screen at startup:
-       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/CusomerView1.png)
+       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/CustomerView1.png)
      * Purchase and item:
-       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/CusomerView2.png)
+       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/CustomerView2.png)
      * Purchase an out of stock item:
-       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/CusomerView3.png)
+       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/CustomerView3.png)
 
 * If you decide to clone this repository and check it out, please follow these instructions:
   * Make sure you have NodeJS installed.
@@ -44,4 +44,6 @@ Amazon-like storefront NodeJS application using MySQL
 
 * If you have any questions about the project, please contact me at mhenderson557@yahoo.com
 * Enjoy :) 
+
+      
 
