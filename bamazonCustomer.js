@@ -106,7 +106,7 @@ var promptUserToContinueShopping = () => {
 
         // Check if user wants to continue shopping
         if (answers.confirm) {
-            console.clear();
+            //console.clear();
             getItemsForSale();
         }
         else {
