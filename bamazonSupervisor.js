@@ -17,6 +17,9 @@ var cTable = require('console.table');
 // Load inquirer npm package
 var inquirer = require("inquirer");
 
+// Load Bamazon SQL library
+var bamazonSQL = require("./bamazonSQL.js");
+
 // Load MySql library
 var mySql = require("mysql");
 
@@ -30,60 +33,51 @@ var connection = mySql.createConnection(
     }
 );
 
-// Function to view sales by department
-var viewSalesByDepartement = () => {
+// Function to check for a numeric value
+var checkIfNumericValue = (value) => {
 
-    // Create SQL query to get the sales information
-    var sqlQuery = "select departments.department_id,   \
-                           departments.department_name, \
-                           departments.over_head_costs, \
-                        sum(products.product_sales) as product_sales, \
-                        (sum(products.product_sales) - departments.over_head_costs) as total_profit \
-                    from departments       \
-                        left join products \
-                            on departments.department_name = products.department_name \
-                        group by departments.department_id;"
+    var inputValue = parseFloat(value);
 
-    // Get sales information for all departments
-    var query = connection.query(sqlQuery,
-        function(err, res) {
-            var itemDetail = "";
-            if (err) throw err;
-            console.log("\r");
-            
-            // Log product list
-            console.table(res); 
-
-            // Prompt manager for more work
-            promptSupervisor();
-        }
-    );
+    var valid = !isNaN(inputValue);
+    if (!valid)
+        return 'Please enter a number.';
+    if (inputValue <= 0) 
+        return 'Please enter a number greater than 0.';
+    return true;
 };
 
-// Function to add a new department
-var addNewDepartment = (itemInfo) => {
+// Function to get sales by department
+var getSalesByDepartment = () => {
+    bamazonSQL.getSalesByDepartment(getSalesByDepartmentResponse);
+}
 
-    // Create new product
-    var query = connection.query(
-        "insert into departments (department_name, over_head_costs) values(?, ?) ",
-        [
-            itemInfo.department_name, 
-            itemInfo.over_head_costs
-        ],
-        function(err, res) {
-            var newCount = 0;
-            if (err) throw err;
-            //console.log(res);
+// Function to display sales by department
+var getSalesByDepartmentResponse = (res) => {
+      
+    // Display department sales
+    console.log("\r")  
+    console.table(res); 
 
-            // Update successful
-            console.log("\nNew deparmtment " + itemInfo.department_name + " has been successfully added.\n");
+    // Prompt manager for more work
+    promptSupervisor();
 
-            // Prompt manager for more work
-            promptSupervisor();
-        }
-      );
+}
 
-};
+// Function to add new department
+var addNewDepartment = (departmentInfo) => {
+    bamazonSQL.addNewDepartment(departmentInfo, addNewDepartmentResponse);
+}
+
+// Function to display sales by department
+var addNewDepartmentResponse = (departmentInfo) => {
+
+    // Update successful
+    console.log("\nNew department " + departmentInfo.department_name + " has been successfully added.\n");
+
+    // Prompt manager for more work
+    promptSupervisor();
+
+}
 
 // Function to prompt supervisor for a new deparment
 var promptForNewDepartment = () => {
@@ -91,25 +85,23 @@ var promptForNewDepartment = () => {
         {
             type: 'input',
             name: 'department_name',
-            message: "What is the department name?"
+            message: "What is the department name?",
+            validate: function(value) {
+                var valid = (value.length > 0);
+                return valid || "Please enter a value";
+            }
         },
         {
             type: 'input',
             name: 'over_head_costs',
             message: "What is the overhead cost?",
             validate: function(value) {
-              inputValue = parseFloat(value);
-              var valid = !isNaN(inputValue);
-              if (!valid)
-                return 'Please enter a number.';
-              if (inputValue <= 0) 
-                return 'Please enter a number greater than 0.';
-              return true;
+                return checkIfNumericValue(value);
             },
             filter: Number
         }
     ]).then((answers) => {
-        //console.log(answers);
+
         // Add new product
         addNewDepartment(answers);
     });
@@ -125,7 +117,7 @@ function promptSupervisor() {
     }]).then((answers) => {
         switch (answers.action) {
             case "View sales by department.":
-                viewSalesByDepartement();
+                getSalesByDepartment();
                 break;
             case "Create a new department.":
                 promptForNewDepartment();
@@ -133,7 +125,9 @@ function promptSupervisor() {
             case "EXIT":            
                 console.log("\r");
                 console.log("Goodbye... Come back soon!!!");
-                connection.end();
+
+                // Disconnect from MySql
+                bamazonSQL.disconnect(); 
                 return;
             default:
                 promptManager();
@@ -145,11 +139,5 @@ function promptSupervisor() {
 console.log("Welcome to Bamazon!!!\n");
 
 // Connect to MySql database
-connection.connect(function(err) {
-    // Check for error
-    if (err) throw(err);
-
-    // Prompt Supeervisor with questions
-    promptSupervisor();
-});
+bamazonSQL.connect(promptSupervisor); 
 

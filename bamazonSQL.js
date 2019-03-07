@@ -47,7 +47,16 @@ var bamazonSQL = {
 
     // Function to get items for sale
     getItemsForSale : function(cb) {
-        var query = connection.query("select item_id, product_name, price, stock_quantity from products",
+
+        // SQL query to get items for sale
+        var sqlQuery = "select item_id,         \
+                               product_name,    \
+                               price,           \
+                               department_name, \
+                               stock_quantity   \
+                          from products";
+
+        var query = connection.query(sqlQuery,
             function(err, res) {
 
                 // Check for error
@@ -61,8 +70,14 @@ var bamazonSQL = {
     
     // Function to get the item quantity
     getItemQuantity : function(item_Id, quantityNeeded, cb) {
-        var query = connection.query(
-          "select price, product_sales, stock_quantity from products WHERE ?",
+
+        // SQL query to get the item quantity
+        var sqlQuery = "select price,         \
+                               product_sales, \
+                               stock_quantity \
+                          from products WHERE ?";
+
+        var query = connection.query(sqlQuery,
           [
             {
                 item_id: item_Id
@@ -83,8 +98,11 @@ var bamazonSQL = {
     
     // Function to update an item
     updateItem : function(item_ID, totalCost, totalSales, newQuantity, cb) {
-        var query = connection.query(
-          "UPDATE products SET ? WHERE ?",
+
+        // SQL query to update and sales item
+        var sqlQuery = "UPDATE products SET ? WHERE ?";
+
+        var query = connection.query(sqlQuery,
           [
             {
                 product_sales: totalSales,
@@ -109,8 +127,12 @@ var bamazonSQL = {
     
     // Function to get the item quantity
     getLowInventoryItems : function(cb) {
-        var query = connection.query(          
-          "select * from products where stock_quantity < 5",
+
+        // SQL query to get low inventory items
+        var sqlQuery = "select * from products \
+                           where stock_quantity < 5";
+
+        var query = connection.query(sqlQuery,
           function(err, res) {
 
             // Check for error
@@ -126,8 +148,14 @@ var bamazonSQL = {
     
     // Function to get the current inventory list
     getInventoryList : function(cb) {
-        var query = connection.query(          
-          "select item_id, product_name, stock_quantity from products",
+
+        // SQL query to get current inventory list
+        var sqlQuery =  "select item_id,       \
+                                product_name,  \
+                                stock_quantity \
+                            from products";
+
+        var query = connection.query(sqlQuery,
           function(err, res) {
 
             // Check for error
@@ -168,19 +196,113 @@ var bamazonSQL = {
             cb(res);
           }
         );
-    }
+    },
+    
+    // Function to get the current department list
+    getDepartmentList : function(cb) {
 
-};
+        // SQL query to get all departments
+        var sqlQuery = "select department_name from departments";
+
+        var query = connection.query(sqlQuery,
+          function(err, res) {
+
+            // Check for error
+            if (err) {
+                 throw(err);
+            }
+
+            // Run the callback function
+            cb(res);
+          }
+        );
+    },
+
+    // Function to add a new product
+    addNewProduct : function(productInfo, cb) {
+
+      // SQL to add a new product
+      var sqlQuery = "insert into products          \
+                                  (product_name,    \
+                                   department_name, \
+                                   price,           \
+                                   stock_quantity)  \
+                          values(?, ?, ?, ?)";
+
+      // Create new product
+      var query = connection.query(sqlQuery,
+          [
+              productInfo.product_name, 
+              productInfo.department_name, 
+              productInfo.price, 
+              productInfo.stock_quantity
+          ],
+          function(err, res) {
+
+              // Check for error
+              if (err) throw err;
+      
+              // Run the callback function
+              cb(productInfo, res);
+          }
+        );
+    },
+
+    // Function to get sales by departement
+    getSalesByDepartment : function(cb) {
+
+      // Create SQL query to get the sales information
+      var sqlQuery = "select departments.department_id,   \
+                             departments.department_name, \
+                             departments.over_head_costs, \
+                          sum(products.product_sales) as product_sales, \
+                          (sum(products.product_sales) - departments.over_head_costs) as total_profit \
+                      from departments       \
+                          left join products \
+                              on departments.department_name = products.department_name \
+                          group by departments.department_id;"
+  
+      // Get sales by department
+
+      // Get sales information for all departments
+      var query = connection.query(sqlQuery,
+        function(err, res) {
+
+          // Check for error
+          if (err) throw err;
+
+          // Run the callback function
+          cb(res);
+        }
+      );
+    },
+
+    // Function to add new departement
+    addNewDepartment : function(departmentInfo, cb) {
+
+      // SQL query to add new department
+      var sqlQuery = "insert into departments       \
+                                  (department_name, \
+                                  over_head_costs)  \
+                        values(?, ?)";
+
+      // Create new product
+      var query = connection.query(sqlQuery,
+          [
+            departmentInfo.department_name, 
+            departmentInfo.over_head_costs
+          ],
+          function(err, res) {
+
+            // Check for error
+            if (err) throw err;
+  
+            // Run the callback function
+            cb(departmentInfo);
+          }
+        );
+    },
+  };
 
 // Export Bamazon SQL Object
 module.exports = bamazonSQL;
-
-/*
-UPDATE products as t, 
-(
-    SELECT item_id, stock_quantity as sq
-    FROM products 
-    WHERE item_id = '1'
-) as temp
-SET stock_quantity = sq + '5' WHERE temp.item_id = t.item_id;
-*/

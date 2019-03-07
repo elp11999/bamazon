@@ -4,10 +4,10 @@
 //
 // bamazonManager.js - Manager View of the Bamzon storefront 
 //                     This application will allow a manager to:
-//                       * View all Products for Sale
-//                       * View Low Inventory (A product invventory count < 5)
-//                       * Add to Inventory (Update inventory count for a product)
-//                       * Add New Product to inventory
+//                       * View all products for sale
+//                       * View low inventory (A product's inventory count < 5)
+//                       * Add to inventory (Update inventory count for a product)
+//                       * Add a new product to an existing department
 //
 
 // Load DotEnv library
@@ -42,13 +42,26 @@ var connection = mySql.createConnection(
 // Current product inventory list
 var currentInventory = [];
 
+// Function to check for a numeric value
+var checkIfNumericValue = (value) => {
+
+    var inputValue = parseFloat(value);
+
+    var valid = !isNaN(inputValue);
+    if (!valid)
+        return 'Please enter a number.';
+    if (inputValue <= 0) 
+        return 'Please enter a number greater than 0.';
+    return true;
+};
+
 // Function to get all items for sale
 var getItemsForSale = () => {
-    bamazonSQL.getItemsForSale(displayItemsForSale);
+    bamazonSQL.getItemsForSale(getItemsForSaleResponse);
 }
 
 // Display all items for sale
-var displayItemsForSale = (res) => {
+var getItemsForSaleResponse = (res) => {
             
     // Display product list
     console.table(res); 
@@ -59,11 +72,11 @@ var displayItemsForSale = (res) => {
 
 // Function to get all items which have an inventory less than 5
 var getLowInventoryItems = () => {
-    bamazonSQL.getLowInventoryItems(displayLowInventoryItems);
+    bamazonSQL.getLowInventoryItems(getLowInventoryItemsResponse);
 }
 
 // Display low inventory items
-var displayLowInventoryItems = (res) => {
+var getLowInventoryItemsResponse = (res) => {
         
     // Log low inventory results
     if (res.length > 0 )            
@@ -98,152 +111,50 @@ var buildInventoryList = (res) => {
 
 // Function to update a products inventory
 var updateProductInventory = (item_ID, newQuantity) => {
-    bamazonSQL.updateProductInventory(item_ID, newQuantity, displayProductInventoryResult);
+    bamazonSQL.updateProductInventory(item_ID, newQuantity, updateProductInventoryResult);
 }
 
 // Function to display updated inventory result
-var displayProductInventoryResult = (res) => {
+var updateProductInventoryResult = (res) => {
     
     // Update successful
-    //console.log("\nItem id: " + item_ID + " inventory has been successfully updated to " + newQuantity + ".\n");
     console.log("\nInventory has been successfully updated.\n");
 
     // Prompt manager for more work
     promptManager();
 }
 
-//////////////////////////////////////////////////////////////////////////
+// Function to get all departments
+var getDepartmentlist = () => {
+    bamazonSQL.getDepartmentList(getDepartmentlistResponse);
+}
 
-// Function to view all products
-var viewAllProducts = () => {
-    var query = connection.query("select * from products",
-        function(err, res) {
-            var itemDetail = "";
-            if (err) throw err;
-            console.log("\r");
-            
-            // Log product list
-            console.table(res); 
+// Function to create department list
+var getDepartmentlistResponse = (res) => {
 
-            // Prompt manager for more work
-            promptManager();
-        }
-    );
-};
+    // Create department choices
+    choices = [];
+    for (var i = 0; i < res.length; i++)
+        choices.push(sprintf('%-50s', res[i].department_name));
 
-// Function to view all products for inventory
-var viewAllProductsForInventory = () => {
-    var query = connection.query("select item_id, product_name, stock_quantity from products",
-        function(err, res) {
-            var itemDetail = "";
-            if (err) throw err;
-
-            // Create choices to update inventory
-            choices = [];
-            for (var i = 0; i < res.length; i++)
-              choices.push(sprintf('%-3d %-50s Quantity: %d', res[i].item_id, res[i].product_name, res[i].stock_quantity));
-
-            // Prompt manager for new inventory count            
-            promptForNewInventoryCount(choices);
-        }
-    );
-};
-
-// Function to view all products
-var viewLowInventory = () => {
-    var query = connection.query(
-      "select * from products where stock_quantity < 5",
-      function(err, res) {
-        if (err) throw err;
-        console.log("\r");
-        
-        // Log low inventory results
-        if (res.length > 0 )            
-            console.table(res); 
-        else
-            console.log("No items have an inventory level less than 5.")
-        console.log("\r");
-
-        // Prompt manager for more work
-        promptManager();
-      }
-    );
-
-};
-
-// Update database inventory information
-var UpdateInventory = (item_ID, newQuantity) => {
-    var query = connection.query(
-        "UPDATE products SET ? WHERE ?",
-        [
-            {
-                stock_quantity: newQuantity
-            },
-            {
-                item_id: item_ID
-            }
-        ],
-        function(err, res) {
-            if (err) throw err;
-
-            // Update successful
-            console.log("\nItem id: " + item_ID + " inventory has been successfully updated to " + newQuantity + ".\n");
-
-            // Prompt manager for more work
-            promptManager();
-        }
-    );
-};
-
-// Function to add to inventory
-var addToInventory = (item_ID, newQuantity) => {
-
-    // Get current count for the item
-    var query = connection.query(
-        "select stock_quantity from products WHERE ?",
-        {
-            item_id: item_ID
-        },
-        function(err, res) {
-          var newCount = 0;
-          if (err) throw err;
-          //console.log(res);
-
-          // Calculate new inventory count
-          newCount = parseInt(newQuantity) + res[0].stock_quantity;
-
-          // Update inventory
-          UpdateInventory(item_ID, newCount);
-        }
-      );
+    // Prompt Manager to create a new product            
+    promptForNewProduct(choices);
 };
 
 // Function to add a new product
-var addNewProduct = (itemInfo) => {
+var addNewProduct = (productInfo) => {
+    bamazonSQL.addNewProduct(productInfo, addNewProductResult);
+}
 
-    // Create new product
-    var query = connection.query(
-        "insert into products (product_name, department_name, price, stock_quantity) values(?, ?, ?, ?) ",
-        [
-            itemInfo.product_name, 
-            itemInfo.department_name, 
-            itemInfo.price, 
-            itemInfo.stock_quantity
-        ],
-        function(err, res) {
-            var newCount = 0;
-            if (err) throw err;
-            //console.log(res);
+// Function to display add product result
+var addNewProductResult = (productInfo, res) => {
 
-            // Update successful
-            console.log("\nNew item " + itemInfo.product_name + " has been successfully added.\n");
+    // Update successful
+    console.log("\nNew item " + productInfo.product_name + " has been successfully added.\n");
 
-            // Prompt manager for more work
-            promptManager();
-        }
-      );
-
-};
+    // Prompt manager for more work
+    promptManager();
+}
 
 // Function to prompt manager for new inventory update
 var promptForNewInventoryCount = (choices) => {
@@ -259,13 +170,7 @@ var promptForNewInventoryCount = (choices) => {
             name: 'newCount',
             message: "How much to add to the inventory count?",
             validate: function(value) {
-              inputValue = parseFloat(value);
-              var valid = !isNaN(inputValue);
-              if (!valid)
-                return 'Please enter a number.';
-              if (inputValue <= 0) 
-                return 'Please enter a number greater than 0.';
-              return true;
+              return checkIfNumericValue(value);
             },
             filter: Number
         }
@@ -281,30 +186,29 @@ var promptForNewInventoryCount = (choices) => {
 };
 
 // Function to prompt manager for a new product
-var promptForNewProduct = () => {
+var promptForNewProduct = (choices) => {
     inquirer.prompt([
         {
-            type: 'input',
-            name: 'product_name',
-            message: "What is the product name?"
+            type: 'list',
+            name: 'department_name',
+            message: "What is the department name?",
+            choices : choices
         },
         {
             type: 'input',
-            name: 'department_name',
-            message: "What is the department name?"
+            name: 'product_name',
+            message: "What is the product name?",
+            validate: function(value) {
+                var valid = (value.length > 0);
+                return valid || "Please enter a value";
+            }
         },
         {
             type: 'input',
             name: 'price',
             message: "What is the price?",
             validate: function(value) {
-              inputValue = parseFloat(value);
-              var valid = !isNaN(inputValue);
-              if (!valid)
-                return 'Please enter a number.';
-              if (inputValue <= 0) 
-                return 'Please enter a number greater than 0.';
-              return true;
+                return checkIfNumericValue(value);
             },
             filter: Number
         },
@@ -313,18 +217,12 @@ var promptForNewProduct = () => {
             name: 'stock_quantity',
             message: "What is the inventory count?",
             validate: function(value) {
-              inputValue = parseFloat(value);
-              var valid = !isNaN(inputValue);
-              if (!valid)
-                return 'Please enter a number.';
-              if (inputValue <= 0) 
-                return 'Please enter a number greater than 0.';
-              return true;
+                return checkIfNumericValue(value);
             },
             filter: Number
         }
     ]).then((answers) => {
-        //console.log(answers);
+
         // Add new product
         addNewProduct(answers);
     });
@@ -340,16 +238,26 @@ function promptManager() {
     }]).then((answers) => {
         switch (answers.action) {
             case "View products for sale.":
+
+                // Get all items for for sale
                 getItemsForSale();
                 break;
             case "View low inventory items.":
-                viewLowInventory();
+
+                // Get low inventory items
+                getLowInventoryItems();
                 break;
             case "Add to item inventory.":
+
+                // Increase inventory level
+                // First get the inventory list
                 getInventorylist();
                 break;
             case "Add new product.":
-                promptForNewProduct();
+
+                // Add a new product
+                // First get list of all departments
+                getDepartmentlist();
                 break;
             case "EXIT":            
                 console.log("\r");
@@ -369,15 +277,3 @@ console.log("Welcome to Bamazon!!!\n");
 
 // Connect to MySql database
 bamazonSQL.connect(promptManager); 
-
-/*
-// Connect to MySql database
-connection.connect(function(err) {
-    // Check for error
-    if (err) throw(err);
-
-    // Prompt Manager with questions
-    promptManager();
-});
-*/
-

@@ -4,7 +4,7 @@
 //
 // bamazonCustom.js - Displays all of the items available for sale. 
 //                    Prompts user for what items to buy.
-//                    Updates inventory as purchases are made.
+//                    Updates inventory and prodcut sales as purchases are made.
 //
 
 // Load inquirer npm package
@@ -20,13 +20,26 @@ var bamazonSQL = require("./bamazonSQL.js");
 // Array to hold items available to purchase
 var itemChoices = [];
 
+// Function to check for a numeric value
+var checkIfNumericValue = (value) => {
+
+    var inputValue = parseFloat(value);
+
+    var valid = !isNaN(inputValue);
+    if (!valid)
+        return 'Please enter a number.';
+    if (inputValue <= 0) 
+        return 'Please enter a number greater than 0.';
+    return true;
+};
+
 // Function to purchase item
-var purchaseItem = (item_ID, totalCost, totalSales, newQuantity) => {
-  bamazonSQL.updateItem(item_ID, totalCost, totalSales, newQuantity, displayPurchaseResults);
+var updateItem = (item_ID, totalCost, totalSales, newQuantity) => {
+  bamazonSQL.updateItem(item_ID, totalCost, totalSales, newQuantity, updateItemResponse);
 }
 
 // Function to display purchase results
-function displayPurchaseResults(totalCost) {
+function updateItemResponse(totalCost) {
 
     // Purchase was successful
     console.log("\nCongratulations!!! Your purchase was successful.");
@@ -40,11 +53,11 @@ function displayPurchaseResults(totalCost) {
 
 // Function to get item quantity
 var getItemQuantity = (item_Id, quantityNeeded) => {
-  bamazonSQL.getItemQuantity(item_Id, quantityNeeded, checkItemQuantity);
+    bamazonSQL.getItemQuantity(item_Id, quantityNeeded, getItemQuantityResponse);
 }
 
 // Function to check item quantity
-var checkItemQuantity = (item_Id, quantityNeeded, res) => {
+var getItemQuantityResponse = (item_Id, quantityNeeded, res) => {
 
   // Check if current inventory will fill the user's request
   if (quantityNeeded > parseInt(res[0].stock_quantity)) {
@@ -54,7 +67,7 @@ var checkItemQuantity = (item_Id, quantityNeeded, res) => {
       promptUserToContinueShopping();
   } else {
       // Purchase item
-      purchaseItem(item_Id,
+      updateItem(item_Id,
          (parseFloat(res[0].price) * quantityNeeded),
          (parseFloat(res[0].product_sales + (parseFloat(res[0].price) * quantityNeeded))), 
          (parseInt(res[0].stock_quantity - quantityNeeded)));
@@ -63,18 +76,18 @@ var checkItemQuantity = (item_Id, quantityNeeded, res) => {
 
 // Function to get all items for sale
 var getItemsForSale = () => {
-  bamazonSQL.getItemsForSale(saveItemsForSale);
+  bamazonSQL.getItemsForSale(getItemsForSaleResponse);
 }
 
 // Function save all items for sale
-var saveItemsForSale = (res) => {
+var getItemsForSaleResponse = (res) => {
 
     // Create list of all products for sale
     console.log("\r");
     itemChoices = [];
     for (var i = 0; i < res.length; i++) {
-      if (parseInt(res[i].stock_quantity) > 0) 
-        itemChoices.push(sprintf('%-3d %-50s %.2f', res[i].item_id, res[i].product_name, res[i].price));
+        var status = (parseInt(res[i].stock_quantity) > 0) ? "In Stock" : "Out of Stock**";
+        itemChoices.push(sprintf('%-3d %-50s %-10.2f %s', res[i].item_id, res[i].product_name, res[i].price, status));
     }
 
     // Prompt user to purchase items
@@ -123,13 +136,7 @@ var promptUserToPurchaseItems = (itemChoices) => {
             name: 'quantity',
             message: "How many would you like to purchase?",
             validate: function(value) {
-                inputValue = parseFloat(value);
-                var valid = !isNaN(inputValue);
-                if (!valid)
-                  return 'Please enter a number.';
-                if (inputValue <= 0) 
-                  return 'Please enter a number greater than 0.';
-                return true;
+                return checkIfNumericValue(value);
             },
             filter: Number
         }
@@ -138,7 +145,8 @@ var promptUserToPurchaseItems = (itemChoices) => {
         // Get the item_id
         var item_id = answers.item.substring(0, answers.item.indexOf(" "));
 
-        // Get item quantity
+        // Purchase the item
+        // First get current item quantity
         getItemQuantity(item_id, parseInt(answers.quantity));
     });
 };
