@@ -61,7 +61,16 @@ var getItemsForSale = () => {
 }
 
 // Display all items for sale
-var getItemsForSaleResponse = (res) => {
+var getItemsForSaleResponse = (res, err) => {
+
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+    
+        // Prompt manager for more work
+        promptManager();
+        return;
+    } 
             
     // Display product list
     console.table(res); 
@@ -76,7 +85,16 @@ var getLowInventoryItems = () => {
 }
 
 // Display low inventory items
-var getLowInventoryItemsResponse = (res) => {
+var getLowInventoryItemsResponse = (res, err) => {
+
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+    
+        // Prompt manager for more work
+        promptManager();
+        return;
+    } 
         
     // Log low inventory results
     if (res.length > 0 )            
@@ -91,11 +109,20 @@ var getLowInventoryItemsResponse = (res) => {
 
 // Function to get all items which have an inventory less than 5
 var getInventorylist = () => {
-    bamazonSQL.getInventoryList(buildInventoryList);
+    bamazonSQL.getInventoryList(getInventorylistResponse);
 }
 
 // Function to build inventory list
-var buildInventoryList = (res) => {
+var getInventorylistResponse = (res, err) => {
+
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+    
+        // Prompt manager for more work
+        promptManager();
+        return;
+    } 
 
     // Set current product inventory list
     currentInventory = res;
@@ -111,11 +138,20 @@ var buildInventoryList = (res) => {
 
 // Function to update a products inventory
 var updateProductInventory = (item_ID, newQuantity) => {
-    bamazonSQL.updateProductInventory(item_ID, newQuantity, updateProductInventoryResult);
+    bamazonSQL.updateProductInventory(item_ID, newQuantity, updateProductInventoryResponse);
 }
 
 // Function to display updated inventory result
-var updateProductInventoryResult = (res) => {
+var updateProductInventoryResponse = (res, err) => {
+
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+    
+        // Prompt manager for more work
+        promptManager();
+        return;
+    } 
     
     // Update successful
     console.log("\nInventory has been successfully updated.\n");
@@ -130,7 +166,16 @@ var getDepartmentlist = () => {
 }
 
 // Function to create department list
-var getDepartmentlistResponse = (res) => {
+var getDepartmentlistResponse = (res, err) => {
+
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+    
+        // Prompt manager for more work
+        promptManager();
+        return;
+    } 
 
     // Create department choices
     choices = [];
@@ -147,7 +192,16 @@ var addNewProduct = (productInfo) => {
 }
 
 // Function to display add product result
-var addNewProductResult = (productInfo, res) => {
+var addNewProductResult = (productInfo, res, err) => {
+    
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+    
+        // Prompt manager for more work
+        promptManager();
+        return;
+    } 
 
     // Update successful
     console.log("\nNew item " + productInfo.product_name + " has been successfully added.\n");
@@ -276,4 +330,17 @@ function promptManager() {
 console.log("Welcome to Bamazon!!!\n");
 
 // Connect to MySql database
-bamazonSQL.connect(promptManager); 
+bamazonSQL.connect(connectResponse);
+
+// Connect response function
+function connectResponse(err) {
+
+    // Check for error
+    if (err) { 
+        console.log("Error: Connection to " + process.env.MYSQL_HOSTNAME + " port " + process.env.MYSQL_PORT + " failed. Error code=" + err.code);
+        return;
+    }
+
+    // Prompt Manager for work to do
+    promptManager();
+}; 

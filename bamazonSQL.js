@@ -15,6 +15,7 @@ var mySql = require("mysql");
 var connection = mySql.createConnection(
     {
         host     : process.env.MYSQL_HOSTNAME,
+        port     : process.env.MYSQL_PORT,
         user     : process.env.MYSQL_USER,
         password : process.env.MYSQL_PASSWORD,
         database : 'bamazon'
@@ -30,11 +31,8 @@ var bamazonSQL = {
         // Connect to MySql database
         connection.connect(function(err) {
 
-            // Check for error
-            if (err) throw(err);
-
             // Run the callback function
-            cb();
+            cb(err);
         });
     },
 
@@ -58,12 +56,9 @@ var bamazonSQL = {
 
         var query = connection.query(sqlQuery,
             function(err, res) {
-
-                // Check for error
-                if (err) throw(err);
     
                 // Run the callback function
-                cb(res);
+                cb(res, err);
             }
         );
     },
@@ -85,13 +80,8 @@ var bamazonSQL = {
           ],
           function(err, res) {
 
-            // Check for error
-            if (err) {
-                 throw(err);
-            }
-
             // Run the callback function
-            cb(item_Id, quantityNeeded, res);
+            cb(item_Id, quantityNeeded, res, err);
           }
         );
     },
@@ -114,13 +104,8 @@ var bamazonSQL = {
           ],
           function(err, res) {
 
-            // Check for error
-            if (err) {
-                 throw(err);
-            }
-
             // Run the callback function
-            cb(totalCost);
+            cb(totalCost, err);
           }
         );
     },
@@ -135,13 +120,8 @@ var bamazonSQL = {
         var query = connection.query(sqlQuery,
           function(err, res) {
 
-            // Check for error
-            if (err) {
-                 throw(err);
-            }
-
             // Run the callback function
-            cb(res);
+            cb(res,  err);
           }
         );
     },
@@ -158,13 +138,8 @@ var bamazonSQL = {
         var query = connection.query(sqlQuery,
           function(err, res) {
 
-            // Check for error
-            if (err) {
-                 throw(err);
-            }
-
             // Run the callback function
-            cb(res);
+            cb(res, err);
           }
         );
     },
@@ -187,13 +162,8 @@ var bamazonSQL = {
           ],
           function(err, res) {
 
-            // Check for error
-            if (err) {
-                 throw(err);
-            }
-
             // Run the callback function
-            cb(res);
+            cb(res, err);
           }
         );
     },
@@ -207,13 +177,8 @@ var bamazonSQL = {
         var query = connection.query(sqlQuery,
           function(err, res) {
 
-            // Check for error
-            if (err) {
-                 throw(err);
-            }
-
             // Run the callback function
-            cb(res);
+            cb(res, err);
           }
         );
     },
@@ -239,11 +204,8 @@ var bamazonSQL = {
           ],
           function(err, res) {
 
-              // Check for error
-              if (err) throw err;
-      
               // Run the callback function
-              cb(productInfo, res);
+              cb(productInfo, res, err);
           }
         );
     },
@@ -268,11 +230,8 @@ var bamazonSQL = {
       var query = connection.query(sqlQuery,
         function(err, res) {
 
-          // Check for error
-          if (err) throw err;
-
           // Run the callback function
-          cb(res);
+          cb(res, err);
         }
       );
     },
@@ -293,12 +252,9 @@ var bamazonSQL = {
             departmentInfo.over_head_costs
           ],
           function(err, res) {
-
-            // Check for error
-            if (err) throw err;
   
             // Run the callback function
-            cb(departmentInfo);
+            cb(departmentInfo, err);
           }
         );
     },

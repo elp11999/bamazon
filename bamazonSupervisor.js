@@ -52,7 +52,16 @@ var getSalesByDepartment = () => {
 }
 
 // Function to display sales by department
-var getSalesByDepartmentResponse = (res) => {
+var getSalesByDepartmentResponse = (res, err) => {
+    
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+    
+        // Prompt manager for more work
+        promptSupervisor();
+        return;
+    } 
       
     // Display department sales
     console.log("\r")  
@@ -69,7 +78,16 @@ var addNewDepartment = (departmentInfo) => {
 }
 
 // Function to display sales by department
-var addNewDepartmentResponse = (departmentInfo) => {
+var addNewDepartmentResponse = (departmentInfo, err) => {
+    
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+    
+        // Prompt manager for more work
+        promptSupervisor();
+        return;
+    } 
 
     // Update successful
     console.log("\nNew department " + departmentInfo.department_name + " has been successfully added.\n");
@@ -138,6 +156,18 @@ function promptSupervisor() {
 // Display startup message
 console.log("Welcome to Bamazon!!!\n");
 
-// Connect to MySql database
-bamazonSQL.connect(promptSupervisor); 
+// Connect to MySql databasepromptSupervisor
+bamazonSQL.connect(connectResponse); 
 
+// Connect response function
+function connectResponse(err) {
+
+    // Check for error
+    if (err) { 
+        console.log("Error: Connection to " + process.env.MYSQL_HOSTNAME + " port " + process.env.MYSQL_PORT + " failed. Error code=" + err.code);
+        return;
+    }
+
+    // Prompt Supervisor for work to do
+    promptSupervisor();
+}; 

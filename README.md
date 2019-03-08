@@ -73,6 +73,7 @@ Amazon-like storefront NodeJS application using MySQL
   * Import the database schema file schema.sql to the MySql database.
   * Create file .env and enter the MySql database configuration:
     * MYSQL_HOSTNAME={host-name}
+    * MYSQL_PORT={port-number}
     * MYSQL_USER={user-name}
     * MYSQL_PASSWORD={password}
 

@@ -7,6 +7,9 @@
 //                    Updates inventory and prodcut sales as purchases are made.
 //
 
+// Load DotEnv library
+require("dotenv").config();
+
 // Load inquirer npm package
 var inquirer = require("inquirer");
 
@@ -39,7 +42,16 @@ var updateItem = (item_ID, totalCost, totalSales, newQuantity) => {
 }
 
 // Function to display purchase results
-function updateItemResponse(totalCost) {
+function updateItemResponse(totalCost, err) {
+
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+        
+        // Prompt user to continue shopping
+        promptUserToContinueShopping();
+        return;
+    } 
 
     // Purchase was successful
     console.log("\nCongratulations!!! Your purchase was successful.");
@@ -57,21 +69,30 @@ var getItemQuantity = (item_Id, quantityNeeded) => {
 }
 
 // Function to check item quantity
-var getItemQuantityResponse = (item_Id, quantityNeeded, res) => {
+var getItemQuantityResponse = (item_Id, quantityNeeded, res, err) => {
 
-  // Check if current inventory will fill the user's request
-  if (quantityNeeded > parseInt(res[0].stock_quantity)) {
-      console.log("\nWe are sorry, their are not enough items at this time to fill your request.\n");
-      
-      // Prompt user to continue shopping
-      promptUserToContinueShopping();
-  } else {
-      // Purchase item
-      updateItem(item_Id,
-         (parseFloat(res[0].price) * quantityNeeded),
-         (parseFloat(res[0].product_sales + (parseFloat(res[0].price) * quantityNeeded))), 
-         (parseInt(res[0].stock_quantity - quantityNeeded)));
-  }
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+        
+        // Prompt user to continue shopping
+        promptUserToContinueShopping();
+        return;
+    }
+
+    // Check if current inventory will fill the user's request
+    if (quantityNeeded > parseInt(res[0].stock_quantity)) {
+        console.log("\nWe are sorry, their are not enough items at this time to fill your request.\n");
+
+        // Prompt user to continue shopping
+        promptUserToContinueShopping();
+    } else {
+        // Purchase item
+        updateItem(item_Id,
+        (parseFloat(res[0].price) * quantityNeeded),
+        (parseFloat(res[0].product_sales + (parseFloat(res[0].price) * quantityNeeded))), 
+        (parseInt(res[0].stock_quantity - quantityNeeded)));
+    }
 }
 
 // Function to get all items for sale
@@ -80,7 +101,16 @@ var getItemsForSale = () => {
 }
 
 // Function save all items for sale
-var getItemsForSaleResponse = (res) => {
+var getItemsForSaleResponse = (res, err) => {
+
+    // Check for error
+    if (err)  {
+        console.log("\nSQL Error: " + err.sqlMessage + ". Error code=" + err.code  + "\n");
+        
+        // Prompt user to continue shopping
+        promptUserToContinueShopping();
+        return;
+    }
 
     // Create list of all products for sale
     console.log("\r");
@@ -152,4 +182,17 @@ var promptUserToPurchaseItems = (itemChoices) => {
 };
 
 // Connect to MySql database
-bamazonSQL.connect(getItemsForSale); 
+bamazonSQL.connect(connectResponse);
+
+// Connect response function
+function connectResponse(err) {
+
+    // Check for error
+    if (err) { 
+        console.log("Error: Connection to " + process.env.MYSQL_HOSTNAME + " port " + process.env.MYSQL_PORT + " failed. Error code=" + err.code);
+        return;
+    }
+
+    // Get the items for sale
+    getItemsForSale();
+};
