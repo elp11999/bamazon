@@ -69,6 +69,7 @@ Amazon-like storefront NodeJS application using MySQL
     * https://nodejs.org/en/download/
   * Run npm install to setup the dependecies.
   * Install MySql.
+    * https://www.mysql.com/downloads/
   * Import the database schema file schema.sql to the MySql database.
   * Create file .env and enter the MySql database configuration:
     * MYSQL_HOSTNAME={host-name}
