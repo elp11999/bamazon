@@ -52,6 +52,18 @@ Amazon-like storefront NodeJS application using MySQL
      * Display all items for sale to check the new item for sale (Item_id: 13):
        ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/ManagerView10.png)
 
+* Example of running the bamazonSupervisor application:
+  * Command line: node bamazonSupervisor.js
+     * Initial screen at startup:
+       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/SupervisorView1.png)
+     * View sales by department:
+       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/SupervisorView2.png)
+     * Create new department:
+       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/SupervisorView3.png)
+       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/SupervisorView4.png)
+     * View sales by department to check new department added:
+       ![ScreenShot](https://raw.github.com/elp11999/bamazon/master/images/SupervisorView5.png)
+
 * If you decide to clone this repository and check it out, please follow these installation instructions:
   * Make sure you have NodeJS installed.
     * https://nodejs.org/en/download/
