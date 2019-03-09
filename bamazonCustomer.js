@@ -55,7 +55,7 @@ function updateItemResponse(totalCost, err) {
 
     // Purchase was successful
     console.log("\nCongratulations!!! Your purchase was successful.");
-    console.log("The total price is $" + totalCost);
+    console.log(sprintf("The total price is $%-10.2f" , totalCost));
     console.log("We hope you will be very happy with your new product.");
     console.log("Thank you for shopping Bamazon.\n");
         
