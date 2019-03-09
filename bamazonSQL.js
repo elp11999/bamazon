@@ -197,8 +197,8 @@ var bamazonSQL = {
       // Create new product
       var query = connection.query(sqlQuery,
           [
-              productInfo.product_name, 
-              productInfo.department_name, 
+              productInfo.product_name.trim(), 
+              productInfo.department_name.trim(), 
               productInfo.price, 
               productInfo.stock_quantity
           ],
